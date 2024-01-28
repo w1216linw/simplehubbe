@@ -41,14 +41,22 @@ class OrderItemSerializer(serializers.ModelSerializer):
         model = OrderItem
         fields = ['order', 'menuitem', 'quantity', 'price']
 
-class OrderSerializer(serializers.ModelSerializer):
-    orderitem = OrderItemSerializer(many=True, read_only=True, source='order')
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username']
 
+class OrderUpdateSerializer(serializers.ModelSerializer):
+    orderitem = OrderItemSerializer(many=True, read_only=True, source='order')
+    delivery_crew = UserSerializer()
     class Meta:
         model = Order
         fields = ['id', 'user', 'delivery_crew', 'status', 'date', 'total', 'orderitem']
 
-class UserSerializer(serializers.ModelSerializer):
+class OrderSerializer(serializers.ModelSerializer):
+    orderitem = OrderItemSerializer(many=True, read_only=True, source='order')
+    delivery_crew = UserSerializer(read_only=True)
     class Meta:
-        model = User
-        fields = ['id', 'username', 'email']
+        model = Order
+        fields = ['id', 'user', 'delivery_crew', 'status', 'date', 'total', 'orderitem']
+
