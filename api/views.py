@@ -49,7 +49,7 @@ class CartView(generics.ListCreateAPIView):
 
     def delete(self, request, *args, **kwargs):
         Cart.objects.filter(user = request.user).delete()
-        return Response('ok')
+        return Response({"message": "deleted cart"}, 200)
 
 class OrderView(generics.ListCreateAPIView):
     queryset = Order.objects.all()
@@ -89,7 +89,7 @@ class OrderView(generics.ListCreateAPIView):
                 )
                 orderitem.save()
             Cart.objects.all().filter(user=self.request.user).delete()
-            return Response(order_serializer.data)
+            return Response(order_serializer.data, 200)
         
     def get_total_price(self, user):
         total = 0
@@ -105,7 +105,7 @@ class SingleOrderView(generics.RetrieveUpdateAPIView):
     
     def update(self, request, *args, **kwargs):
         if request.user.groups.count() == 0:
-            return Response({"message": "Not Authorized"})
+            return Response({"message": "Not Authorized"}, 403)
         
         instance = self.get_object()
         if request.user.groups.filter(name="delivery_crew").exists():
@@ -113,9 +113,9 @@ class SingleOrderView(generics.RetrieveUpdateAPIView):
             if state is not None:
                 instance.status = state
                 instance.save()
-                return Response({"message": "Order status updated"})
+                return Response({"message": "Order status updated"}, 200)
             else:
-                return Response({"message": "Status not provided"})
+                return Response({"message": "Status not provided"}, 400)
         elif request.user.groups.filter(name="manager").exists():
             delivery_crew_id = request.data.get('delivery_crew')
             state = request.data.get("status")
@@ -126,16 +126,16 @@ class SingleOrderView(generics.RetrieveUpdateAPIView):
                 instance.status = state
 
             instance.save()
-            return Response({"message": "Order updated"})
+            return Response({"message": "Order updated"}, 200)
         else:
-            return Response({"message": "Not Authorized"})
+            return Response({"message": "Not Authorized"}, 403)
             
 class ManagerViewSet(viewsets.ViewSet): 
     permission_classes = [IsAdminUser]
     def list(self, request):
         user = User.objects.all().filter(groups__name='manager')
         items = serializers.UserSerializer(user, many=True)
-        return Response(items.data)
+        return Response(items.data, 200)
     
     def create(self, request):
         user = get_object_or_404(User, username=request.data['username'])
@@ -152,27 +152,26 @@ class ManagerViewSet(viewsets.ViewSet):
 class DeliveryCrewViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
     def list(self, request):
-        users = User.objects.all().filter(groups__name='Delivery Crew')
+        users = User.objects.all().filter(groups__name='delivery_crew')
         items = serializers.UserSerializer(users, many=True)
-        return Response(items.data)
+        return Response(items.data, 200)
 
     def create(self, request):
-        #only for super admin and managers
         if self.request.user.is_superuser == False: #type: ignore
             if self.request.user.groups.filter(name='Manager').exists() == False: #type: ignore
                 return Response({"message":"forbidden"}, 403)
         
         user = get_object_or_404(User, username=request.data['username'])
-        dc = Group.objects.get(name="Delivery Crew")
+        dc = Group.objects.get(name="delivery_crew")
         dc.user_set.add(user) #type: ignore
         return Response({"message": "user added to the delivery crew group"}, 200)
 
     def destroy(self, request):
-        #only for super admin and managers
         if self.request.user.is_superuser == False: #type: ignore
             if self.request.user.groups.filter(name='Manager').exists() == False: #type: ignore
                 return Response({"message":"forbidden"}, 403)
+
         user = get_object_or_404(User, username=request.data['username'])
-        dc = Group.objects.get(name="Delivery Crew")
+        dc = Group.objects.get(name="delivery_crew")
         dc.user_set.remove(user) #type: ignore
         return Response({"message": "user removed from the delivery crew group"}, 200)
