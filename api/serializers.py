@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from decimal import Decimal
-
+from django.core.exceptions import ObjectDoesNotExist
 from .models import Category, MenuItem, Cart, Order, OrderItem
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -20,9 +20,11 @@ class CartSerializer(serializers.ModelSerializer):
     menuitem = serializers.PrimaryKeyRelatedField(queryset = MenuItem.objects.all())
 
     def validate(self, attrs):
-        quantity =attrs.get('quantity')
+        quantity = attrs.get('quantity')
         menuitem = attrs.get('menuitem')
-
+        if quantity < 1:
+            raise serializers.ValidationError("Quantity must be greater than 0")
+        
         attrs['unit_price'] = menuitem.price
         attrs['price'] = Decimal(menuitem.price) * Decimal(quantity)
 
@@ -30,7 +32,7 @@ class CartSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Cart
-        fields = ['user', 'menuitem', 'unit_price', 'quantity', 'price']
+        fields = ['id','user', 'menuitem', 'unit_price', 'quantity', 'price']
         extra_kwargs = {
             'price': {'read_only': True},
             'unit_price': {'read_only': True},
