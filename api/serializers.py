@@ -10,10 +10,14 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'title']
 
 class MenuItemSerializer(serializers.ModelSerializer):
+    category_name = serializers.StringRelatedField(source='category')
     category = serializers.PrimaryKeyRelatedField(queryset = Category.objects.all())
     class Meta:
         model = MenuItem
-        fields = ['id', 'title', 'price', 'category', 'featured']
+        fields = ['id', 'title', 'price', 'category', 'featured', 'category_name']
+        extra_kwargs = {
+            "category_name": {"read_only": True}
+        }
 
 class CartSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset = User.objects.all(), default=serializers.CurrentUserDefault())
