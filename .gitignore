@@ -1,2 +1,3 @@
 urls.txt
 api/migrations/
+db.sqlite3
