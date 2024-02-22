@@ -8,6 +8,7 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'title']
+        
 
 class MenuItemSerializer(serializers.ModelSerializer):
     category_name = serializers.StringRelatedField(source='category')
@@ -60,9 +61,9 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'delivery_crew', 'status', 'date', 'total', 'orderitem']
 
 class OrderSerializer(serializers.ModelSerializer):
-    orderitem = OrderItemSerializer(many=True, read_only=True, source='order')
+    order_items = OrderItemSerializer(many=True, read_only=True, source='order')
     delivery_crew = UserSerializer(read_only=True)
     class Meta:
         model = Order
-        fields = ['id', 'user', 'delivery_crew', 'status', 'date', 'total', 'orderitem']
+        fields = ['id', 'user', 'delivery_crew', 'status', 'date', 'total', 'order_items']
 
