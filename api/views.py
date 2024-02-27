@@ -6,6 +6,8 @@ from django.contrib.auth.models import User, Group
 from django.shortcuts import get_object_or_404
 from . import serializers
 from .permissions import IsManager
+from rest_framework.decorators import api_view
+from .utils import calc_pages
 
 def check_given_permissions(self):
     permission_classes = []
@@ -193,3 +195,11 @@ class DeliveryCrewViewSet(viewsets.ViewSet):
         dc = Group.objects.get(name="delivery_crew")
         dc.user_set.remove(user)
         return Response({"message": "user removed from the delivery crew group"}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def total_menu_items(request):
+    if request.method == 'GET':
+        menuitem_count = MenuItem.objects.all().count()
+        total_pages = calc_pages(menuitem_count, 12)
+        return Response({"counts": menuitem_count, "total_pages": total_pages}, status=status.HTTP_200_OK)
