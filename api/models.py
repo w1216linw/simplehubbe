@@ -4,7 +4,7 @@ from datetime import date
 # Create your models here.
 class Category(models.Model):
     title = models.CharField(max_length=255, unique = True)
-
+    slug = models.SlugField(max_length=255, unique = True)
     class Meta:
         ordering = ['title']
         
@@ -17,6 +17,7 @@ class MenuItem(models.Model):
     price = models.DecimalField(max_digits=6, decimal_places=2, db_index=True)
     featured = models.BooleanField(default=False, db_index=True)
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
+    description = models.TextField(null=True)
 
     class Meta:
         ordering = ['category']

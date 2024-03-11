@@ -200,6 +200,12 @@ class DeliveryCrewViewSet(viewsets.ViewSet):
 @api_view(['GET'])
 def total_menu_items(request):
     if request.method == 'GET':
-        menuitem_count = MenuItem.objects.all().count()
-        total_pages = calc_pages(menuitem_count, 12)
-        return Response({"counts": menuitem_count, "total_pages": total_pages}, status=status.HTTP_200_OK)
+        search_slug = request.query_params.get('category')
+        if search_slug is not None:
+            menuitem_count = MenuItem.objects.filter(category__slug=search_slug).count()
+            total_pages = calc_pages(menuitem_count, 12)
+            return Response({"counts": menuitem_count, "total_pages": total_pages}, status=status.HTTP_200_OK)
+        else:
+            menuitem_count = MenuItem.objects.all().count()
+            total_pages = calc_pages(menuitem_count, 12)
+            return Response({"counts": menuitem_count, "total_pages": total_pages}, status=status.HTTP_200_OK)
