@@ -48,9 +48,15 @@ class CartView(generics.ListCreateAPIView):
     queryset = Cart.objects.all()
     serializer_class = serializers.CartSerializer
     permission_classes = [IsAuthenticated]
+    
 
     def get_queryset(self):
-        return Cart.objects.filter(user = self.request.user)
+        return Cart.objects.filter(user = self.request.user).order_by('menuitem__title')
+    
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return serializers.CartUserSerializer
+        return serializers.CartSerializer
 
     def delete(self, request, *args, **kwargs):
         Cart.objects.filter(user = request.user).delete()
